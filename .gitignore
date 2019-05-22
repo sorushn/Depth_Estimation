@@ -103,7 +103,6 @@ celerybeat-schedule
 *.sage.py
 
 # Environments
-.env
 .venv
 env/
 venv/
@@ -128,7 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-.vscode/
 # Distribution / packaging
 .Python
 build/
