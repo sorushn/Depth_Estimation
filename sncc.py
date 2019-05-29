@@ -3,6 +3,7 @@ from numpy.linalg import matrix_power
 from PIL import Image
 import cv2
 import time
+import matplotlib as plt 
 
 AVG_FILTER_SIZE = 13
 DEFAULT_PATCH_SIZE = 3
@@ -12,11 +13,11 @@ start = time.time()
 image = Image.open("0_L.png")
 image = image.resize((image.size[0]//SCALE, image.size[1]//SCALE))
 m,n = image.size[1], image.size[0]
-left_image = np.fromstring(image.tobytes(), dtype=np.uint8).astype(np.int64)
+left_image = np.frombuffer(image.tobytes(), dtype=np.uint8).astype(np.int64)
 left_image = left_image.reshape((image.size[1], image.size[0]))#[m//4:,n//4:3*n//4]
 image = Image.open("0_R.png")
 image = image.resize((image.size[0]//SCALE, image.size[1]//SCALE))
-right_image = np.fromstring(image.tobytes(), dtype=np.uint8).astype(np.int64)
+right_image = np.frombuffer(image.tobytes(), dtype=np.uint8).astype(np.int64)
 right_image = right_image.reshape((image.size[1], image.size[0]))#[m//4:,n//4:3*n//4]
 (m,n) = left_image.shape
 D_MAX = n//8
@@ -94,10 +95,13 @@ for d in range(0, D_MAX):
 
 def scale_and_show(image):
 	# cv2.equalizeHist(image)
+	scale_coeff = 255/image[np.unravel_index(image.argmax(),image.shape)]
+	image = image*scale_coeff
+	Image.fromarray(image).show()
+	cv2.imshow("disparity map", image)
 	# plt.imshow(image,'gray')
 	# plt.show()
-	scale_coeff = 255/image[np.unravel_index(image.argmax(),image.shape)]
-	Image.fromarray(image*scale_coeff).show()
+
 print("Second Loop:", time.time() - start2)
 print("runtime:", time.time() - start)
 scale_and_show(Dmap.astype(np.int64))
