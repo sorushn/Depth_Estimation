@@ -41,25 +41,25 @@ cap.release()
 
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
 
-# cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 # _, img = cap.read()
 
 h,  w = img.shape[:2]
 newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx,dist,(w,h),1,(w,h))
-# while(True):
-	# _, img = cap.read()
-	# mapx,mapy = cv2.initUndistortRectifyMap(mtx,dist,None,newcameramtx,(w,h),5)
-	# dst = cv2.remap(img,mapx,mapy,cv2.INTER_LINEAR)
+while(True):
+	_, img2 = cap.read()
+	mapx,mapy = cv2.initUndistortRectifyMap(mtx,dist,None,newcameramtx,(w,h),5)
+	dst = cv2.remap(img2,mapx,mapy,cv2.INTER_LINEAR)
 	
-	# #crop
-	# x,y,w,h = roi
-	# dst = dst[y:y+h, x:x+w]
-	# cv2.imshow('calibresult',dst)
+	#crop
+	x,y,w,h = roi
+	dst = dst[y:y+h, x:x+w]
+	cv2.imshow('l' , np.array(dst, dtype = np.uint8 ) )
 
-mapx,mapy = cv2.initUndistortRectifyMap(mtx,dist,None,newcameramtx,(w,h),5)
-dst = cv2.remap(img,mapx,mapy,cv2.INTER_LINEAR)
+# mapx,mapy = cv2.initUndistortRectifyMap(mtx,dist,None,newcameramtx,(w,h),5)
+# dst = cv2.remap(img,mapx,mapy,cv2.INTER_LINEAR)
 
-#crop
-x,y,w,h = roi
-dst = dst[y:y+h, x:x+w]
-cv2.imshow('calibresult',dst)
+# #crop
+# x,y,w,h = roi
+# dst = dst[y:y+h, x:x+w]
+# cv2.imshow('calibresult',dst)

@@ -6,8 +6,6 @@ cap1 = cv2.VideoCapture(0)
 cap2 = cv2.VideoCapture(2)
 while(True):
     
-	# Capture frame-by-frame
-	#TODO: calibrate the cameras
 	_, imgL = cap1.read()
 	_, imgR = cap2.read()
 	
