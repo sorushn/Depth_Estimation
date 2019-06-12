@@ -2,8 +2,8 @@ import numpy as np
 import cv2
 import time 
 
-LEFT_PATH = "capture/left/{:06d}.png"
-RIGHT_PATH = "capture/right/{:06d}.png"
+LEFT_PATH = "L{:06d}.png"
+RIGHT_PATH = "R{:06d}.png"
 
 left = cv2.VideoCapture(0)
 right = cv2.VideoCapture(2)
@@ -26,10 +26,10 @@ while(True):
 
 	cv2.imshow('left', leftFrame)
 	cv2.imshow('right', rightFrame)
-	if cv2.waitKey(1) & 0xFF == ord('q'):
+	if cv2.waitKey(25) & 0xFF == ord('q'):
 		break
 	frameId += 1
-	time.sleep(1)
+	# time.sleep(1)
 
 left.release()
 right.release()

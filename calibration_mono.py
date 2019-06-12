@@ -42,7 +42,7 @@ cap.release()
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1],None,None)
 
 cap = cv2.VideoCapture(0)
-# _, img = cap.read()
+_, img = cap.read()
 
 h,  w = img.shape[:2]
 newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx,dist,(w,h),1,(w,h))
