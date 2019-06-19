@@ -1,64 +1,70 @@
-import cv2
-import time
 import argparse
+import time
+
+import cv2
 import numpy as np
-from matplotlib import pyplot as plt
+
 import calib
 
-window_size = 11
-min_disp = 4
-num_disp = 128
+WINDOW_SIZE = 11
+MIN_DISPARITY = 4
+NUM_DISPARITY = 128
+#Semi-global Block Matching algorithm
 stereo = cv2.StereoSGBM_create(
-    minDisparity = min_disp,
-    numDisparities = num_disp,
-    blockSize = window_size,
-    uniquenessRatio = 10,
-    speckleWindowSize = 50,
-    speckleRange = 2,
-    disp12MaxDiff = 2,
-    P1 = 8*window_size**2,
-    P2 = 4*8*window_size**2,
+    minDisparity=MIN_DISPARITY,
+    numDisparities=NUM_DISPARITY,
+    blockSize=WINDOW_SIZE,
+    uniquenessRatio=10,
+    speckleWindowSize=50,
+    speckleRange=2,
+    disp12MaxDiff=2,
+    P1=8*WINDOW_SIZE**2,
+    P2=4*8*WINDOW_SIZE**2,
 )
 
+# BlockMatching algorithm which is much faster but has poor results.
 # stereo = cv2.StereoBM_create()
 # stereo.setMinDisparity(0)
 # stereo.setNumDisparities(112)
 # stereo.setBlockSize(25)
 # stereo.setSpeckleRange(5)
 # stereo.setSpeckleWindowSize(150)
+
 def show_undistorted():
-    mtxL, distL, mtxR, distR = calib.calibrate()
+    """ calculate & display disparity map produced from undistorted camera output
+        which is calculated for each camera separately"""
+    mtx_left, dist_left, mtx_right, dist_right = calib.calibrate()
 
     cap2 = cv2.VideoCapture(0)
     cap1 = cv2.VideoCapture(2)
     _, img = cap1.read()
-    h,  w = img.shape[:2]
+    h, w = img.shape[:2]
 
-    newcameramtxL, roi = cv2.getOptimalNewCameraMatrix(mtxL, distL, (w, h), 1, (w, h))
-    newcameramtxR, _ = cv2.getOptimalNewCameraMatrix(mtxR, distR, (w, h), 1, (w, h))
-    while(True):
+    newcameramtx_left, roi = cv2.getOptimalNewCameraMatrix(mtx_left, dist_left, (w, h), 1, (w, h))
+    newcameramtx_right, _ = cv2.getOptimalNewCameraMatrix(mtx_right, dist_right, (w, h), 1, (w, h))
+    while True:
         start = time.time()
         # Capture frame-by-frame
-        _, imgL = cap1.read()
-        _, imgR = cap2.read()
+        _, left_img = cap1.read()
+        _, right_img = cap2.read()
 
-        imgR = cv2.cvtColor(imgR, cv2.COLOR_BGR2GRAY)
-        imgR = cv2.flip(imgR,0)
-        imgL = cv2.cvtColor(imgL, cv2.COLOR_BGR2GRAY)
-        imgL = cv2.flip(imgL,0)
-        
-        imgR = cv2.undistort(imgR, mtxR, distR, None, newcameramtxR)
-        imgL = cv2.undistort(imgL, mtxL, distL, None, newcameramtxL)
-        x,y,w,h = roi
-        imgR = imgR[y:y+h, x:x+w]
-        imgL = imgL[y:y+h, x:x+w]
+        right_img = cv2.cvtColor(right_img, cv2.COLOR_BGR2GRAY)
+        right_img = cv2.flip(right_img, 0)
+        left_img = cv2.cvtColor(left_img, cv2.COLOR_BGR2GRAY)
+        left_img = cv2.flip(left_img, 0)
 
-        disparity = stereo.compute(imgL, imgR).astype(np.float32)/16.0
-        disparity = (disparity)/num_disp
+        right_img = cv2.undistort(right_img, mtx_right, dist_right, None, newcameramtx_right)
+        left_img = cv2.undistort(left_img, mtx_left, dist_left, None, newcameramtx_left)
+        x, y, w, h = roi
+        right_img = right_img[y:y+h, x:x+w]
+        left_img = left_img[y:y+h, x:x+w]
+
+        disparity = stereo.compute(left_img, right_img).astype(np.float32)/16.0
+        disparity = (disparity)/NUM_DISPARITY
         # plt.imshow(disparity,'gray')
         # plt.show()
-        cv2.imshow('camera feed', np.concatenate((imgL,imgR),axis=1))
-        cv2.imshow('frame',disparity)
+        cv2.imshow('camera feed', np.concatenate((left_img, right_img), axis=1))
+        cv2.imshow('frame', disparity)
         print(time.time()- start)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -68,38 +74,40 @@ def show_undistorted():
     cv2.destroyAllWindows()
 
 def show_undistorted_symmetric():
+    """ calculate & display disparity map produced from undistorted camera output
+        which is calculated for one camera and applied to both """
     mtx, dist = calib.calibrate_symmetric()
 
     cap2 = cv2.VideoCapture(0)
     cap1 = cv2.VideoCapture(2)
     _, img = cap1.read()
-    h,  w = img.shape[:2]
+    h, w = img.shape[:2]
 
-    newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx,dist,(w,h),1,(w,h))
+    newcameramtx, roi=cv2.getOptimalNewCameraMatrix(mtx, dist, (w, h), 1, (w, h))
 
-    while(True):
+    while True:
         start = time.time()
         # Capture frame-by-frame
-        _, imgL = cap1.read()
-        _, imgR = cap2.read()
+        _, left_img = cap1.read()
+        _, right_img = cap2.read()
 
-        imgR = cv2.cvtColor(imgR, cv2.COLOR_BGR2GRAY)
-        imgR = cv2.flip(imgR,0)
-        imgL = cv2.cvtColor(imgL, cv2.COLOR_BGR2GRAY)
-        imgL = cv2.flip(imgL,0)
-        
-        imgR = cv2.undistort(imgR, mtx, dist, None, newcameramtx)
-        imgL = cv2.undistort(imgL, mtx, dist, None, newcameramtx)
-        x,y,w,h = roi
-        imgR = imgR[y:y+h, x:x+w]
-        imgL = imgL[y:y+h, x:x+w]
+        right_img = cv2.cvtColor(right_img, cv2.COLOR_BGR2GRAY)
+        right_img = cv2.flip(right_img, 0)
+        left_img = cv2.cvtColor(left_img, cv2.COLOR_BGR2GRAY)
+        left_img = cv2.flip(left_img, 0)
 
-        disparity = stereo.compute(imgL, imgR).astype(np.float32)/16.0
-        disparity = (disparity)/num_disp
+        right_img = cv2.undistort(right_img, mtx, dist, None, newcameramtx)
+        left_img = cv2.undistort(left_img, mtx, dist, None, newcameramtx)
+        x, y, w, h = roi
+        right_img = right_img[y:y+h, x:x+w]
+        left_img = left_img[y:y+h, x:x+w]
+
+        disparity = stereo.compute(left_img, right_img).astype(np.float32)/16.0
+        disparity = (disparity)/NUM_DISPARITY
         # plt.imshow(disparity,'gray')
         # plt.show()
-        cv2.imshow('camera feed', np.concatenate((imgL,imgR),axis=1))
-        cv2.imshow('frame',disparity)
+        cv2.imshow('camera feed', np.concatenate((left_img, right_img), axis=1))
+        cv2.imshow('frame', disparity)
         print(time.time()- start)
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -109,28 +117,28 @@ def show_undistorted_symmetric():
     cv2.destroyAllWindows()
 
 def show_with_distortion():
+    """ calculate and display disparity map without calibrating cameras"""
     cap2 = cv2.VideoCapture(0)
     cap1 = cv2.VideoCapture(2)
-    _, img = cap1.read()
 
-    while(True):
+    while True:
         start = time.time()
         # Capture frame-by-frame
-        _, imgL = cap1.read()
-        _, imgR = cap2.read()
+        _, left_image = cap1.read()
+        _, right_image = cap2.read()
 
-        imgR = cv2.cvtColor(imgR, cv2.COLOR_BGR2GRAY)
-        imgR = cv2.flip(imgR,0)
-        imgL = cv2.cvtColor(imgL, cv2.COLOR_BGR2GRAY)
-        imgL = cv2.flip(imgL,0)
-        
-        disparity = stereo.compute(imgL, imgR).astype(np.float32)/16.0
-        disparity = (disparity)/num_disp
-        # plt.imshow(disparity,'gray')
-        # plt.show()
-        cv2.imshow('camera feed', np.concatenate((imgL,imgR),axis=1))
-        cv2.imshow('frame',disparity)
-        print(time.time()- start)
+        right_image = cv2.cvtColor(right_image, cv2.COLOR_BGR2GRAY)
+        right_image = cv2.flip(right_image, 0)
+        left_image = cv2.cvtColor(left_image, cv2.COLOR_BGR2GRAY)
+        left_image = cv2.flip(left_image, 0)
+
+        disparity = stereo.compute(left_image, right_image).astype(np.float32)/16.0
+        disparity = (disparity)/NUM_DISPARITY
+        # display left and right camera feed side by side
+        cv2.imshow('camera feed', np.concatenate((left_image, right_image), axis=1))
+        # display disparity map
+        cv2.imshow('frame', disparity)
+        print(time.time()- start) # show time spent on each loop
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
