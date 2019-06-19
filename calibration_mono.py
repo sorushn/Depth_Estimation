@@ -15,7 +15,7 @@ imgpoints = [] # 2d points in image plane.
 frames = 0
 # images = glob.glob('*.jpg')
 cap = cv2.VideoCapture(0)
-while(frames < 20):
+while(frames < 50):
 	_, img = cap.read()
 	img = cv2.flip(img,0)
 	gray = cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
@@ -34,7 +34,7 @@ while(frames < 20):
 		# Draw and display the corners
 		cv2.drawChessboardCorners(img, (9,6), corners,ret)
 		cv2.imshow('img',img)
-		cv2.waitKey(500)
+		cv2.waitKey(1)
 
 cv2.destroyAllWindows()
 cap.release()

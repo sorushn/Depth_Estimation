@@ -26,7 +26,7 @@ while(True):
 
 	cv2.imshow('left', leftFrame)
 	cv2.imshow('right', rightFrame)
-	if cv2.waitKey(25) & 0xFF == ord('q'):
+	if cv2.waitKey(500) & 0xFF == ord('q'):
 		break
 	frameId += 1
 	# time.sleep(1)
