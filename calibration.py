@@ -138,25 +138,31 @@ def calibrate_symmetric():
 def calibrate_and_display():
     """utility function for testing the script. Displays calibrated camera output"""
     mtx, dist = calibrate_symmetric()
-    cap = cv2.VideoCapture(0)
-    _, img = cap.read()
-
-    h, w = img.shape[:2]
+    capL = cv2.VideoCapture(0)
+    capR = cv2.VideoCapture(2)
+    _, imgL = capL.read()
+    _, imgR = capR.read()
+    h, w = imgL.shape[:2]
     newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (w, h), 1, (w, h))
     while True:
-        _, img = cap.read()
-        img = cv2.flip(img, 0)
-        dst = cv2.undistort(img, mtx, dist, None, newcameramtx)
+        _, imgL = capL.read()
+        _, imgR = capR.read()
+        imgL = cv2.flip(imgL, 0)
+        imgR = cv2.flip(imgR, 0)
+        dstL = cv2.undistort(imgL, mtx, dist, None, newcameramtx)
+        dstR = cv2.undistort(imgR, mtx, dist, None, newcameramtx)        
 
         # crop the image
         x, y, w, h = roi
-        dst = dst[y:y+h, x:x+w]
-        cv2.imshow('l', np.array(dst, dtype=np.uint8))
+        dstL = dstL[y:y+h, x:x+w]
+        dstR = dstR[y:y+h, x:x+w]
+        # cv2.imshow('l', np.array(dstL, dtype=np.uint8))
+        cv2.imshow('l', np.concatenate((dstL, dstR), axis=1))
         c = cv2.waitKey(25)
         if c & 0xFF == ord('q'):
             break
         if c & 0xFF == ord('c'):
-            cv2.imwrite('%f.png'%time.time(), dst)
+            cv2.imwrite('%f.png'%time.time(), dstL)
 
 if __name__ == "__main__":
     calibrate_and_display()

@@ -4,12 +4,12 @@ import time
 import cv2
 import numpy as np
 
-import calib
+import calibration
 
 WINDOW_SIZE = 11
 MIN_DISPARITY = 4
 NUM_DISPARITY = 128
-#Semi-global Block Matching algorithm
+# Semi-global Block Matching algorithm
 stereo = cv2.StereoSGBM_create(
     minDisparity=MIN_DISPARITY,
     numDisparities=NUM_DISPARITY,
@@ -22,7 +22,7 @@ stereo = cv2.StereoSGBM_create(
     P2=4*8*WINDOW_SIZE**2,
 )
 
-# BlockMatching algorithm which is much faster but has poor results.
+# # BlockMatching algorithm which is much faster but has poor results.
 # stereo = cv2.StereoBM_create()
 # stereo.setMinDisparity(0)
 # stereo.setNumDisparities(112)
@@ -33,10 +33,10 @@ stereo = cv2.StereoSGBM_create(
 def show_undistorted():
     """ calculate & display disparity map produced from undistorted camera output
         which is calculated for each camera separately"""
-    mtx_left, dist_left, mtx_right, dist_right = calib.calibrate()
+    mtx_left, dist_left, mtx_right, dist_right = calibration.calibrate()
 
-    cap2 = cv2.VideoCapture(0)
-    cap1 = cv2.VideoCapture(2)
+    cap2 = cv2.VideoCapture(2)
+    cap1 = cv2.VideoCapture(0)
     _, img = cap1.read()
     h, w = img.shape[:2]
 
@@ -76,7 +76,7 @@ def show_undistorted():
 def show_undistorted_symmetric():
     """ calculate & display disparity map produced from undistorted camera output
         which is calculated for one camera and applied to both """
-    mtx, dist = calib.calibrate_symmetric()
+    mtx, dist = calibration.calibrate_symmetric()
 
     cap2 = cv2.VideoCapture(0)
     cap1 = cv2.VideoCapture(2)
@@ -128,7 +128,7 @@ def show_with_distortion():
         _, right_image = cap2.read()
 
         right_image = cv2.cvtColor(right_image, cv2.COLOR_BGR2GRAY)
-        right_image = cv2.flip(right_image, 0)
+        # right_image = cv2.flip(right_image, 0)
         left_image = cv2.cvtColor(left_image, cv2.COLOR_BGR2GRAY)
         left_image = cv2.flip(left_image, 0)
 

@@ -10,9 +10,9 @@ while(True):
 
     if (imgL is None) or (imgR is None):
         continue
-    imgR = cv2.cvtColor(imgR, cv2.COLOR_BGR2GRAY)
+    # imgR = cv2.cvtColor(imgR, cv2.COLOR_BGR2GRAY)
     imgR = cv2.flip(imgR, 0)
-    imgL = cv2.cvtColor(imgL, cv2.COLOR_BGR2GRAY)
+    # imgL = cv2.cvtColor(imgL, cv2.COLOR_BGR2GRAY)
     imgL = cv2.flip(imgL, 0)
     # disparity = stereo.compute(imgL, imgR).astype(np.float32) / 16.0
     # disparity = (disparity-min_disp)/num_disp
